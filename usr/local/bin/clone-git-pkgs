@@ -72,6 +72,22 @@ if ($opt_p) {
 	@list = @default_list;
 }
 
+# for each item in the list, clone it unless it is already cloned.
+# if it is clones check it is updated with git pull -v --ff-only --all
+my $rc;
 foreach my $item (@list) {
-	print "parameter: $item\n";
+	# check if directory item exists, package name = directory name
+	chdir "/home/robert";
+	if (-d $item) {
+		# directory exists, check for updates
+		print "Directory $item exists, checking for updates\n";
+		$rc =system("git -v --ff-only --all");
+		
+		# check for errors, maybe the directory is not a git directory
+		# print a error message if there is one.
+	} else {
+		# the directory does not exist
+		# clone the item
+		$rc = system("git clone -o $item.rem -v -b dev https://github.com/rob54321/$item.git $item");
+	}
 }
