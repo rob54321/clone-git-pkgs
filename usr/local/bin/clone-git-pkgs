@@ -16,7 +16,7 @@ use warnings;
 use Getopt::Std;
 
 # global vars
-our ($opt_h, $opt_p, $opt_d);
+our ($opt_h, $opt_p, $opt_d, $opt_b, $opt_u);
 
 # default list
 my @default_list = ("initialise-linux",
@@ -31,9 +31,18 @@ my @default_list = ("initialise-linux",
 					"stedit",
 					"rpi-install",
 					"ubuntu-install");
+
+# default parameters
+my $default_branch = "dev";
+
+# default url
+my $default_url = "https://github.com/rob54321";
+
 # help function
 sub usage {
 print "-p is a list of packages: \"pkg1 pkg2 ....\" to clone instead of internal list\n";
+print "-b branch, the default is dev\n";
+print "-u url, the default is https://github.com/rob54321\n";
 print "-d clones the default list:\n";
 print		"\tinitialise-linux\n";
 print		"\tconfigdata\n";
@@ -55,8 +64,11 @@ exit 0;
 # main entry
 ###################################################################################
 
+# set the default parameters
+# defaultparameter;
+
 # get command line parameters
-getopts('hdp:');
+getopts('hdp:b:u:');
 
 # show help
 usage if $opt_h;
@@ -70,6 +82,45 @@ if ($opt_p) {
  } elsif ($opt_d) {
 	# use default list
 	@list = @default_list;
+}
+
+# set the branch if the default parameter was not used
+my $branch;
+if ($opt_b) {
+	# -b has a parameter
+	$branch = $opt_b;
+} else {
+	# -b does not have a parameter
+	$branch = $default_branch;
+}
+
+# set url for cloning
+my $url;
+# extension for remote either .rem .local
+my $remote_extension;
+
+if ($opt_u) {
+	# -u has a parameter
+	# check if it is local or remote
+	# so the remote_extension can be set
+	if ($opt_u =~ /^http/) {
+		# remote url
+		$remote_extension = ".rem";
+	} elsif (-d $opt_u) {
+		# url is a local directory
+		$remote_extension = ".local";
+	} else {
+		# the url does not exist
+		die "The url $opt_u does not exist\n";
+	}
+	# set the url
+	$url = $opt_u;
+} else {
+	# -u does not have a parameter
+	# use the default github which is remote
+	$url = $default_url;
+	# set the remote extension to remote for github
+	$remote_extension = ".rem";
 }
 
 # for each item in the list, clone it unless it is already cloned.
@@ -94,7 +145,8 @@ foreach my $item (@list) {
 	} else {
 		# the directory does not exist
 		# clone the item
-		$rc = system("git clone -o $item.rem -v -b dev https://github.com/rob54321/$item.git $item");
+		print "branch = $branch\n";
+		$rc = system("git clone -o $item" . "$remote_extension -v -b $branch $url/$item.git $item");
 		print "Error cloning $item\n" if $rc != 0;
 		print "-------------------------------------------------\n";
 		print "\n";
