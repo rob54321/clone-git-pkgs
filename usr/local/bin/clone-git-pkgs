@@ -81,7 +81,11 @@ foreach my $item (@list) {
 	if (-d $item) {
 		# directory exists, check for updates
 		print "Directory $item exists, checking for updates\n";
-		$rc =system("git -v --ff-only --all");
+		# change directory to item
+		chdir "$item";
+		$rc =system("git pull -v --ff-only --all");
+		# change back to home
+		chdir "..";
 		
 		# check for errors, maybe the directory is not a git directory
 		# print a error message if there is one.
@@ -89,5 +93,6 @@ foreach my $item (@list) {
 		# the directory does not exist
 		# clone the item
 		$rc = system("git clone -o $item.rem -v -b dev https://github.com/rob54321/$item.git $item");
+		print "Error updating $item\n" if $rc != 0;
 	}
 }
