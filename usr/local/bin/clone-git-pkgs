@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/perl
 # this script clones a list of packages or the default list from github into
 # their respective directories with correct remote names ie name.rem
 # For the list of packages first check if it has been cloned already.
@@ -9,27 +9,69 @@
 # command line switches
 # -h heltp
 # -p list of packages to clone
+# -d default list of packages to clone
 
+use strict;
+use warnings;
+use Getopt::Std;
 
+# global vars
+our ($opt_h, $opt_p, $opt_d);
+
+# default list
+my @default_list = ("initialise-linux",
+					"configdata",
+					"configdatarpi",
+					"thunderbirddatarpi",
+					"thunderbirdconfig",
+					"confignotes",
+					"builddebiantree",
+					"makelive",
+					"editfstab",
+					"stedit",
+					"rpi-install",
+					"ubuntu-install");
 # help function
-usage ()
-echo "-p is a list of packages: pkg1 pkg2 .... to clone instead of internal list"
-echo "the internal list is "
-echo		"initialise-linux"
-echo		"configdata"
-echo		"configdatarpi"
-echo		"thunderbirddatarpi"
-echo		"thunderbirdconfig"
-echo		"confignotes"
-echo		"builddebiantree"
-echo		"makelive"
-echo		"editfstab"
-echo		"stedit"
-echo		"rpi-install"
-echo		"ubuntu-install"
-echo "-h this help"
+sub usage {
+print "-p is a list of packages: \"pkg1 pkg2 ....\" to clone instead of internal list\n";
+print "-d clones the default list:\n";
+print		"\tinitialise-linux\n";
+print		"\tconfigdata\n";
+print		"\tconfigdatarpi\n";
+print		"\tthunderbirddatarpi\n";
+print		"\tthunderbirdconfig\n";
+print		"\tconfignotes\n";
+print		"\tbuilddebiantree\n";
+print		"\tmakelive\n";
+print		"\teditfstab\n";
+print		"\tstedit\n";
+print		"\trpi-install\n";
+print		"\tubuntu-install\n";
+print "-h this help\n";
 exit 0;
+}
 
 ###################################################################################
 # main entry
 ###################################################################################
+
+# get command line parameters
+getopts('hdp:');
+
+# show help
+usage if $opt_h;
+
+# make a list of packages to clone from git
+# if -p and -d are given only -p will be done
+my @list;
+if ($opt_p) {
+	# make a list of individual parameters
+	@list = split (/ /, $opt_p);
+ } elsif ($opt_d) {
+	# use default list
+	@list = @default_list;
+}
+
+foreach my $item (@list) {
+	print "parameter: $item\n";
+}
