@@ -1,0 +1,35 @@
+#!/bin/bash
+# this script clones a list of packages or the default list from github into
+# their respective directories with correct remote names ie name.rem
+# For the list of packages first check if it has been cloned already.
+# If it has been cloned check it has the latest updates with pull -v --ffonly --all
+# If no command line parameters are given then clone the internal list
+# if at least one package is listed on the command line then clone
+# only the command line parameters.
+# command line switches
+# -h heltp
+# -p list of packages to clone
+
+
+# help function
+usage ()
+echo "-p is a list of packages: pkg1 pkg2 .... to clone instead of internal list"
+echo "the internal list is "
+echo		"initialise-linux"
+echo		"configdata"
+echo		"configdatarpi"
+echo		"thunderbirddatarpi"
+echo		"thunderbirdconfig"
+echo		"confignotes"
+echo		"builddebiantree"
+echo		"makelive"
+echo		"editfstab"
+echo		"stedit"
+echo		"rpi-install"
+echo		"ubuntu-install"
+echo "-h this help"
+exit 0;
+
+###################################################################################
+# main entry
+###################################################################################

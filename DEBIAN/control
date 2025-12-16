@@ -1,0 +1,7 @@
+Package: clone-git-pkgs
+Version: 1.0.0
+Architecture: all
+Maintainer: Robert Key robkey@mighty.co.za
+Section: myown
+Priority: optional
+Description: This script clones a list of packages from github into their respective directories with correct names and correct remotes, name.rem
