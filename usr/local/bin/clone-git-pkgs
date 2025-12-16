@@ -84,15 +84,19 @@ foreach my $item (@list) {
 		# change directory to item
 		chdir "$item";
 		$rc =system("git pull -v --ff-only --all");
+		# check for errors
+		print "Error updating $item\n" if $rc !=0;
 		# change back to home
 		chdir "..";
-		
-		# check for errors, maybe the directory is not a git directory
-		# print a error message if there is one.
+		# print a blank line
+		print "-------------------------------------------------\n";
+		print "\n";
 	} else {
 		# the directory does not exist
 		# clone the item
 		$rc = system("git clone -o $item.rem -v -b dev https://github.com/rob54321/$item.git $item");
-		print "Error updating $item\n" if $rc != 0;
+		print "Error cloning $item\n" if $rc != 0;
+		print "-------------------------------------------------\n";
+		print "\n";
 	}
 }
