@@ -9,14 +9,18 @@
 # command line switches
 # -h heltp
 # -p list of packages to clone
-# -d default list of packages to clone
+# -D default list of packages to clone
+# -b branch select
+# -u url http or directory
+# -d target root directory
 
 use strict;
 use warnings;
 use Getopt::Std;
+use File::Path qw (make_path);
 
 # global vars
-our ($opt_h, $opt_p, $opt_d, $opt_b, $opt_u);
+our ($opt_h, $opt_p, $opt_d, $opt_b, $opt_u, $opt_D);
 
 # default list
 my @default_list = ("initialise-linux",
@@ -35,6 +39,9 @@ my @default_list = ("initialise-linux",
 # default parameters
 my $default_branch = "dev";
 
+# default target root directory
+my $default_target_directory = "/home/robert";
+
 # default url
 my $default_url = "https://github.com/rob54321";
 
@@ -43,7 +50,8 @@ sub usage {
 print "-p is a list of packages: \"pkg1 pkg2 ....\" to clone instead of internal list\n";
 print "-b branch, the default is dev\n";
 print "-u url, the default is https://github.com/rob54321\n";
-print "-d clones the default list:\n";
+print "-d target root directory, default is /home/robert\n";
+print "-D clones the default list:\n";
 print		"\tinitialise-linux\n";
 print		"\tconfigdata\n";
 print		"\tconfigdatarpi\n";
@@ -68,20 +76,34 @@ exit 0;
 # defaultparameter;
 
 # get command line parameters
-getopts('hdp:b:u:');
+getopts('hd:p:b:u:D');
 
 # show help
 usage if $opt_h;
 
 # make a list of packages to clone from git
-# if -p and -d are given only -p will be done
+# if -p and -D are given only -p will be done
 my @list;
 if ($opt_p) {
 	# make a list of individual parameters
 	@list = split (/ /, $opt_p);
- } elsif ($opt_d) {
+ } elsif ($opt_D) {
 	# use default list
 	@list = @default_list;
+} else {
+	# no packages were given to clone, die.
+	die "No packages were given to clone\n";
+}
+
+# set the target root directory
+my $target_dir;
+if ($opt_d) {
+	# -d has a parameter
+	$target_dir = $opt_d;
+	make_path ($target_dir) unless -d $target_dir;
+} else {
+	# there is no parameter use the default
+	$target_dir = $default_target_directory;
 }
 
 # set the branch if the default parameter was not used
@@ -128,7 +150,7 @@ if ($opt_u) {
 my $rc;
 foreach my $item (@list) {
 	# check if directory item exists, package name = directory name
-	chdir "/home/robert";
+	chdir $target_dir;
 	if (-d $item) {
 		# directory exists, check for updates
 		print "Directory $item exists, checking for updates\n";
