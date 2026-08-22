@@ -20,36 +20,65 @@ use Getopt::Std;
 use File::Path qw (make_path);
 
 # global vars
-our ($opt_h, $opt_p, $opt_d, $opt_b, $opt_u, $opt_D);
+our ($opt_h, $opt_p, $opt_d, $opt_b, $opt_u, $opt_D, $opt_l);
 
-# default list
-my @default_list = ("initialise-linux",
-					"configdata",
-					"copylive",
-					"canon-pdriver",
-					"setuprepository",
-					"signrepository",
-					"makedeb",
-					"hurricane",
-					"gpxsee",
-					"liveinstall",
-					"initialise-live",
-					"clone-git-pkgs",
-					"mountblv",
-					"testscript",
-					"testscriptA",
-					"testscriptB",
-					"testscript-meta",
-					"configdatarpi",
-					"thunderbirddatarpi",
-					"thunderbirdconfig",
-					"confignotes",
-					"builddebiantree",
-					"makelive",
-					"editfstab",
-					"stedit",
-					"rpi-install",
-					"ubuntu-install");
+#######################################################
+# sub get list of git hub projects
+# each line:
+# rob54321/project_name description .....
+# strip leading rob54321/
+# and strip from white space to end
+# parameters passed: ref to empty list
+#######################################################
+sub getdefaultlist {
+	my $refdefault_list = shift @_;
+
+	my @ghlist = `gh repo list`;
+	chomp(@ghlist);
+	foreach my $line (@ghlist) {
+		$line =~ s/^rob54321\///;
+		$line =~ s/\s+.*$//;
+		push (@$refdefault_list, $line);
+	}
+}
+
+#####################################################
+# sub: print the default list from github
+# parameters passed ref to list
+#####################################################
+sub printdefaultlist {
+	# get the default list
+	my @default_list = ();
+	# get default list
+	getdefaultlist(\@default_list);
+	foreach my $item (@default_list) {
+		print "$item\n";
+	}
+}
+#####################################################
+# sub : isiteminlist list, item
+# this sub check if the item is in the list.
+# it returns true if the item is in the list
+# and false otherwise
+# parameters: ref to list , item
+#####################################################
+sub iteminlist {
+	# get parameters
+	my $listref = shift @_;
+	my $item = shift @_;
+	
+	# check list for item
+	foreach my $litem (@$listref) {
+		if ($item eq $litem) {
+			# item is in the list
+			print "itemlist: found $litem\n";
+			return 1;
+		}
+	}
+	# item was not found
+	# return false
+	return 0;
+}
 
 # default parameters
 my $default_branch = "dev";
@@ -63,22 +92,15 @@ my $default_url = "https://github.com/rob54321";
 # help function
 sub usage {
 print "-p is a list of packages: \"pkg1 pkg2 ....\" to clone instead of internal list\n";
-print "-b branch, the default is dev\n";
+print "-b branch, the default is $default_branch\n";
 print "-u url, the default is https://github.com/rob54321\n";
-print "-d target root directory, default is /home/robert\n";
+print "-d target root directory, default is $default_target_directory\n";
 print "-D clones the default list:\n";
-print		"\tinitialise-linux\n";
-print		"\tconfigdata\n";
-print		"\tconfigdatarpi\n";
-print		"\tthunderbirddatarpi\n";
-print		"\tthunderbirdconfig\n";
-print		"\tconfignotes\n";
-print		"\tbuilddebiantree\n";
-print		"\tmakelive\n";
-print		"\teditfstab\n";
-print		"\tstedit\n";
-print		"\trpi-install\n";
-print		"\tubuntu-install\n";
+
+# print the default list
+printdefaultlist;
+
+print "-l list projects on github\n";
 print "-h this help\n";
 exit 0;
 }
@@ -92,25 +114,49 @@ exit 0;
 my $no_arg = @ARGV;
 
 # get command line parameters
-getopts('hd:p:b:u:D');
+getopts('hd:p:b:u:Dl');
 
 # show help for -h or if no command line arguments given
 if ($opt_h or $no_arg == 0) {
 	usage;
 }
 
+# print the default list if -l given
+printdefaultlist if ($opt_l);
+
 # make a list of packages to clone from git
-# if -p and -D are given only -p will be done
-my @list;
+# if -p and -D are given append -p list to the -D list in @list
+my @list = ();
+
+# get the default list if -D or -l given
+my @default_list = ();
+if ($opt_D) {
+	getdefaultlist(\@default_list);
+    # use the default list if -D given
+	@list = @default_list if $opt_D;
+}
+
+# if extra packages are given
+# append them to the list
+# if they are not in the list
+
 if ($opt_p) {
 	# make a list of individual parameters
-	@list = split (/ /, $opt_p);
- } elsif ($opt_D) {
-	# use default list
-	@list = @default_list;
-} else {
-	# no packages were given to clone, die.
-	die "No packages were given to clone\n";
+	my @plist = split (/ /, $opt_p);
+	chomp (@plist);
+	# check if the items in p list are in list, if not, append it
+	# is the @list empty
+	if (scalar(@list) eq 0) {
+		# list is empty add all items
+		@list = @plist;
+	} else {
+		# list is not empty
+		# only add a plist item if
+		# it is not in the list
+		foreach my $pitem (@plist) {
+			push (@list, $pitem) unless iteminlist(\@list, $pitem);
+		}
+	}
 }
 
 # set the target root directory
